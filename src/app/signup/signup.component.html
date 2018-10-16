@@ -1,70 +1,94 @@
 <h1>註冊畫面</h1>
-<form>
+<form #f="ngForm" (ngSubmit)="save(f)">
   <div class="form-group row">
     <label for="staticEmail" class="col-sm-2 col-form-label">姓名</label>
     <div class="col-sm-10">
-      <input type="text" class="form-control" placeholder="姓名 (必填)" required>
+      <input type="text" class="form-control" placeholder="姓名 (必填)" name="name" [(ngModel)]="customer.name"
+             minlength="2" required #name="ngModel" [ngClass]="{'is-invalid': (name.touched || name.dirty ) && !name.valid}">
+      <span class="invalid-feedback" *ngIf="(name.touched || name.dirty) && name.errors">
+        請輸入姓名
+      </span>
     </div>
   </div>
   <div class="form-group row">
     <label for="staticEmail" class="col-sm-2 col-form-label">E-mail</label>
     <div class="col-sm-10">
-      <input type="email" class="form-control" placeholder="Email (必填)" required>
+      <input type="email" class="form-control" placeholder="Email (必填)" name="email" [(ngModel)]="customer.email"
+             required pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}" #email="ngModel" [ngClass]="{'is-invalid': (email.touched || email.dirty ) && !email.valid}">
+      <span class="invalid-feedback" *ngIf="(email.touched || email.dirty) && email.errors">
+        請輸入Email
+      </span>
     </div>
   </div>
   <div class="form-group row">
     <label for="inputPassword" class="col-sm-2 col-form-label"></label>
     <div class="col-sm-10">
       <div class="form-check">
-        <input class="form-check-input" type="checkbox" value="" id="defaultCheck1">
         <label class="form-check-label" for="defaultCheck1">
+          <input class="form-check-input" id="defaultCheck1" type="checkbox" name="send"
+                 [(ngModel)]="customer.send">
           寄送產品型錄
         </label>
       </div>
     </div>
   </div>
-  <div class="form-group row">
-    <label for="inputPassword" class="col-sm-2 col-form-label">地址類別</label>
-    <div class="col-sm-10">
-      <div class="form-check form-check-inline">
-        <input class="form-check-input" type="radio" name="addressType" value="home" checked>
-        <label class="form-check-label" for="inlineRadio1">住家</label>
-      </div>
-      <div class="form-check form-check-inline">
-        <input class="form-check-input" type="radio" name="addressType" value="office">
-        <label class="form-check-label" for="inlineRadio2">公司</label>
-      </div>
-      <div class="form-check form-check-inline">
-        <input class="form-check-input" type="radio" name="addressType" value="other">
-        <label class="form-check-label" for="inlineRadio3">其他</label>
-      </div>
-    </div>
-  </div>
-  <div class="form-group row">
-    <label for="staticEmail" class="col-sm-2 col-form-label">縣市區域、郵遞區號</label>
-    <div class="col-sm-10">
-      <div class="row">
-        <div class="col">
-          <select id="inputState" class="form-control">
-            <option selected>請選擇縣市</option>
-            <option>...</option>
-          </select>
+  <ng-container *ngIf="customer.send">
+    <div class="form-group row">
+      <label for="inputPassword" class="col-sm-2 col-form-label">地址類別</label>
+      <div class="col-sm-10">
+        <div class="form-check form-check-inline">
+          <label class="form-check-label" for="addressType1">
+            <input class="form-check-input" type="radio" id="addressType1" name="addressType" value="home"
+                   checked [(ngModel)]="customer.addressType">
+            住家
+          </label>
         </div>
-        <div class="col">
-          <select id="inputState" class="form-control">
-            <option selected>請選擇區域</option>
-            <option>...</option>
-          </select>
+        <div class="form-check form-check-inline">
+          <label class="form-check-label" for="addressType2">
+            <input class="form-check-input" type="radio" id="addressType2" name="addressType" value="office"
+                   [(ngModel)]="customer.addressType">
+            公司
+          </label>
         </div>
-        <div class="col"><input type="text" class="form-control" placeholder="郵遞區號"></div>
+        <div class="form-check form-check-inline">
+          <label class="form-check-label" for="addressType3">
+            <input class="form-check-input" id="addressType3" type="radio" name="addressType" value="other"
+                   [(ngModel)]="customer.addressType">
+            其他
+          </label>
+        </div>
       </div>
     </div>
-  </div>
-  <div class="form-group row">
-    <label for="staticEmail" class="col-sm-2 col-form-label">地址</label>
-    <div class="col-sm-10">
-      <input type="text" class="form-control">
+    <div class="form-group row">
+      <label for="staticEmail" class="col-sm-2 col-form-label">縣市區域、郵遞區號</label>
+      <div class="col-sm-10">
+        <div class="row">
+          <div class="col">
+            <select id="inputState" class="form-control" name="city" [(ngModel)]="customer.city"
+                    (change)="queryAreaOption($event)">
+              <option value="" selected>請選擇縣市</option>
+              <option *ngFor="let city of city$ | async">{{ city }}</option>
+            </select>
+          </div>
+          <div class="col">
+            <select id="inputState" class="form-control" name="area" [(ngModel)]="customer.area"
+                    (change)="getCode($event.target)">
+              <option value="" selected>請選擇區域</option>
+              <option *ngFor="let area of areas">{{ area[0] }}</option>
+            </select>
+          </div>
+          <div class="col">
+            <input type="text" class="form-control" placeholder="郵遞區號" name="code" [(ngModel)]="customer.code"
+                   readonly></div>
+        </div>
+      </div>
     </div>
-  </div>
-  <button type="submit" class="btn btn-primary">送出</button>
+    <div class="form-group row">
+      <label for="staticEmail" class="col-sm-2 col-form-label">地址</label>
+      <div class="col-sm-10">
+        <input type="text" class="form-control" name="address" [(ngModel)]="customer.address">
+      </div>
+    </div>
+  </ng-container>
+  <button type="submit" class="btn btn-primary" [disabled]="f.invalid">送出</button>
 </form>
