@@ -1,62 +1,88 @@
 import { HttpClient } from '@angular/common/http';
-import { Component, OnInit, ViewChild } from '@angular/core';
-import { FormControl, NgForm } from '@angular/forms';
-import { map, shareReplay } from 'rxjs/operators';
-
-export class Customer {
-  name: string;
-  email: string;
-  send = false;
-  addressType = 'home';
-  city = '';
-  area = '';
-  code = '';
-  address = '';
-  constructor() {}
-}
+import { Component, OnInit, OnDestroy } from '@angular/core';
+import { FormBuilder, Validators } from '@angular/forms';
+import { map, shareReplay, mergeMap, tap, takeUntil } from 'rxjs/operators';
+import { combineLatest, Subject } from 'rxjs';
 
 @Component({
   selector: 'app-signup',
   templateUrl: './signup.component.html',
   styleUrls: ['./signup.component.css']
 })
-export class SignupComponent implements OnInit {
-  @ViewChild('city')
-  cityControl: FormControl;
-
-  customer = new Customer();
+export class SignupComponent implements OnInit, OnDestroy {
+  destroy$ = new Subject();
+  formData;
 
   cityarea$ = this.http.get('/assets/data/cityarea.json').pipe(shareReplay());
   city$ = this.cityarea$.pipe(map(ds => Object.keys(ds)));
-  areas = [];
+  areas$;
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient, private fb: FormBuilder) {}
 
-  queryAreaOption(event) {
-    this.cityarea$
-      .pipe(
-        map(
-          ds =>
-            !event.target.value ? [] : Object.entries(ds[event.target.value])
-        )
-      )
-      .subscribe(options => {
-        this.areas = options;
+  setCityChange() {
+    this.areas$ = this.formData.get('city').valueChanges.pipe(
+      mergeMap((v: string) =>
+        this.cityarea$.pipe(map(ds => (!v ? [] : Object.entries(ds[v]))))
+      ),
+      tap((options: any[]) => {
         if (options.length === 0) {
-          this.customer.area = '';
-          this.customer.code = '';
+          this.formData.patchValue({
+            area: '',
+            code: ''
+          });
         }
+      }),
+      shareReplay()
+    );
+  }
+
+  setAreaChange() {
+    combineLatest(this.formData.get('area').valueChanges, this.areas$)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(([areaValue, areaOptions]) => {
+        const areaCode = areaOptions.find(x => x[0] === areaValue) || ['', ''];
+        this.formData.patchValue({
+          code: areaCode[1]
+        });
       });
   }
 
-  getCode(target) {
-    const areaCode = this.areas.find(x => x[0] === target.value) || ['', ''];
-    this.customer.code = areaCode[1];
+  ngOnInit() {
+    this.formData = this.fb.group({
+      name: ['', [Validators.required, Validators.minLength(2)]],
+      email: [
+        '',
+        [
+          Validators.required,
+          Validators.pattern('[a-z0-9._%+-]+@[a-z0-9.-]+.[a-z]{2,}')
+        ]
+      ],
+      send: false,
+      addressType: 'home',
+      city: '',
+      area: '',
+      code: '',
+      address: ''
+    });
+
+    this.setCityChange();
+    this.setAreaChange();
   }
 
-  ngOnInit() {}
+  get nameControl() {
+    return this.formData.get('name');
+  }
 
-  save(f: NgForm) {
-    console.log(f.form.getRawValue());
+  get emailControl() {
+    return this.formData.get('email');
+  }
+
+  save() {
+    console.log(this.formData.getRawValue());
+  }
+
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 }
