@@ -1,40 +1,62 @@
 <h1>註冊畫面</h1>
-<form>
+<form [formGroup]="formData">
   <div class="form-group row">
     <label for="staticEmail" class="col-sm-2 col-form-label">姓名</label>
     <div class="col-sm-10">
-      <input type="text" class="form-control" placeholder="姓名 (必填)" required>
+      <input type="text" class="form-control" placeholder="姓名 (必填)" formControlName="name">
     </div>
   </div>
-  <div class="form-group row">
-    <label for="staticEmail" class="col-sm-2 col-form-label">E-mail</label>
-    <div class="col-sm-10">
-      <input type="text" class="form-control" placeholder="Email (必填)" required>
+  <div formGroupName="validEmail">
+    <div class="form-group row">
+      <label for="staticEmail" class="col-sm-2 col-form-label">E-mail</label>
+      <div class="col-sm-10">
+        <input type="text" class="form-control" placeholder="Email (必填)" formControlName="email"
+               [ngClass]="{'is-invalid': (emailControl.touched || emailControl.dirty ) && !emailControl.valid}">
+        <span class="invalid-feedback" *ngIf="emailControl.hasError('required')">
+          Email 為必填欄位
+        </span>
+        <span class="invalid-feedback" *ngIf="emailControl.hasError('pattern')">
+          Email 格式不正確
+        </span>
+      </div>
     </div>
-  </div>
-  <div class="form-group row">
-    <label for="staticEmail" class="col-sm-2 col-form-label">Confirm E-mail</label>
-    <div class="col-sm-10">
-      <input type="text" class="form-control" placeholder="Email (必填)" required>
+
+    <div class="form-group row">
+      <label for="staticEmail" class="col-sm-2 col-form-label">Confirm E-mail</label>
+      <div class="col-sm-10">
+        <input type="text" class="form-control" placeholder="Confirm Email (必填)" formControlName="confirmEmail"
+               [ngClass]="{'is-invalid': formData.get('validEmail').errors || (confirmEmailControl.touched || confirmEmailControl.dirty ) && !confirmEmailControl.valid}">
+        <span class="invalid-feedback" *ngIf="confirmEmailControl.hasError('required')">
+          Confirm Email 為必填欄位
+        </span>
+        <span class="invalid-feedback" *ngIf="confirmEmailControl.hasError('pattern')">
+          Confirm Email 格式不正確
+        </span>
+        <span class="invalid-feedback" *ngIf="formData.get('validEmail').hasError('notMatch')">
+          Email 與 Confirm Email 不一致
+        </span>
+      </div>
     </div>
   </div>
   <div class="form-group row">
     <label for="staticEmail" class="col-sm-2 col-form-label">手機號碼</label>
     <div class="col-sm-10">
-      <input type="text" class="form-control" placeholder="手機號碼 (必填)" required>
+      <input type="text" class="form-control" placeholder="手機號碼" formControlName="cellphone">
     </div>
   </div>
   <div class="form-group row">
     <label for="inputPassword" class="col-sm-2 col-form-label">通知方式</label>
     <div class="col-sm-10">
       <div class="form-check form-check-inline">
-        <input class="form-check-input" id="notifyWay1" type="radio" name="notifyWay" value="email"
-               checked>
-        <label class="form-check-label" for="notifyWay1">Email</label>
+        <label class="form-check-label">
+          <input class="form-check-input" type="radio" name="notify" value="email" formControlName="notify">
+          Email
+        </label>
       </div>
       <div class="form-check form-check-inline">
-        <input class="form-check-input" id="notifyWay2" type="radio" name="notifyWay" value="text">
-        <label class="form-check-label" for="notifyWay2">簡訊</label>
+        <label class="form-check-label">
+          <input class="form-check-input" type="radio" name="notify" value="text" formControlName="notify">
+          簡訊</label>
       </div>
     </div>
   </div>
@@ -42,62 +64,26 @@
     <label for="inputPassword" class="col-sm-2 col-form-label"></label>
     <div class="col-sm-10">
       <div class="form-check">
-        <input class="form-check-input" type="checkbox" value="" id="defaultCheck1">
-        <label class="form-check-label" for="defaultCheck1">
+        <label class="form-check-label">
+          <input class="form-check-input" type="checkbox" formControlName="send">
           寄送產品型錄
         </label>
       </div>
     </div>
   </div>
-  <div class="form-group row">
-    <label for="staticEmail" class="col-sm-2 col-form-label"></label>
-    <div class="col-sm-10">
-      <button type="button" class="btn btn-primary">新增地址</button>
-    </div>
-  </div>
-  <div class="form-group row">
-    <label for="inputPassword" class="col-sm-2 col-form-label">地址類別</label>
-    <div class="col-sm-10">
-      <div class="form-check form-check-inline">
-        <input class="form-check-input" id="inlineRadio1" type="radio" name="addressType" value="home"
-               checked>
-        <label class="form-check-label" for="inlineRadio1">住家</label>
-      </div>
-      <div class="form-check form-check-inline">
-        <input class="form-check-input" id="inlineRadio2" type="radio" name="addressType" value="office">
-        <label class="form-check-label" for="inlineRadio2">公司</label>
-      </div>
-      <div class="form-check form-check-inline">
-        <input class="form-check-input" id="inlineRadio3" type="radio" name="addressType" value="other">
-        <label class="form-check-label" for="inlineRadio3">其他</label>
+  <ng-container *ngIf="formData.get('send').value">
+    <div class="form-group row">
+      <label for="staticEmail" class="col-sm-2 col-form-label"></label>
+      <div class="col-sm-10">
+        <button type="button" class="btn btn-primary" (click)="appendAddress()">新增地址</button>
       </div>
     </div>
-  </div>
-  <div class="form-group row">
-    <label for="staticEmail" class="col-sm-2 col-form-label">縣市區域、郵遞區號</label>
-    <div class="col-sm-10">
-      <div class="row">
-        <div class="col">
-          <select id="inputState" class="form-control">
-            <option selected>請選擇縣市</option>
-            <option>...</option>
-          </select>
-        </div>
-        <div class="col">
-          <select id="inputState" class="form-control">
-            <option selected>請選擇區域</option>
-            <option>...</option>
-          </select>
-        </div>
-        <div class="col"><input type="text" class="form-control" placeholder="郵遞區號"></div>
-      </div>
+    <div formArrayName="sendList" *ngFor="let group of sendListArray.controls; let i=index">
+      <app-send-detail [group]="group" [idx]="i"></app-send-detail>
+      <button class="btn btn-default" (click)="remove(i)">remove</button>
     </div>
-  </div>
-  <div class="form-group row">
-    <label for="staticEmail" class="col-sm-2 col-form-label">地址</label>
-    <div class="col-sm-10">
-      <input type="text" class="form-control">
-    </div>
-  </div>
-  <button type="submit" class="btn btn-primary">送出</button>
+  </ng-container>
+  <br>
+  <button type="
+              submit" class="btn btn-primary" [disabled]="formData.invalid">送出</button>
 </form>

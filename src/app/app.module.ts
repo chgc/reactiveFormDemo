@@ -7,9 +7,15 @@ import { HttpClientModule } from '@angular/common/http';
 import { AppComponent } from './app.component';
 import { SignupComponent } from './signup/signup.component';
 import { SingupAdvanceComponent } from './singup-advance/singup-advance.component';
+import { SendDetailComponent } from './singup-advance/send-detail/send-detail.component';
 
 @NgModule({
-  declarations: [AppComponent, SignupComponent, SingupAdvanceComponent],
+  declarations: [
+    AppComponent,
+    SignupComponent,
+    SingupAdvanceComponent,
+    SendDetailComponent
+  ],
   imports: [
     BrowserModule,
     FormsModule,
